@@ -1,5 +1,12 @@
 import csv
 import os
+import re
+
+def clean_name(raw_geo):
+    # remove leading dots, whitespace, and footnotes from the raw_geo string
+    name = raw_geo.lstrip(".").strip()
+    name = re.sub(r"\s*[a-z]/$", "", name)           # remove footnote like ' a/' or 'd/'
+    return name.strip()
 
 def clean_and_save_data(raw_path=None, clean_path=None):
 
@@ -35,7 +42,7 @@ def clean_and_save_data(raw_path=None, clean_path=None):
                 year = int(parts[0])
                 period = parts[1]
                 if val_str == ".." or val_str == "": 
-                    production = float(0)         # if a value doesnt exist for the specified grid, set it to 0
+                    production = ""         #Lorenz: changed to blank because 0 says that it produces nothing while in fact they have no records
                 else:
                     production = float(val_str)
                 cleaned_rows.append([year, period, production])
@@ -43,11 +50,11 @@ def clean_and_save_data(raw_path=None, clean_path=None):
             #####segregating block of code###################################################################
             # imagine cleanpath as a pointer for files
             if raw_geo.startswith("...."):
-                province = raw_geo.lstrip(".")
+                province =  clean_name(raw_geo)                      # was raw_geo.lstrip("."), changed to remove /a, /c, etc.
                 clean_path = os.path.join(project_root,"data","processed","regions",region,province,croptype+".csv")
 
             elif raw_geo.startswith(".."):
-                region = raw_geo.lstrip(".").strip("d/")
+                region = clean_name(raw_geo)                        # was raw_geo.lstrip(".").strip("d/")
                 clean_path = os.path.join(project_root,"data","processed","regions",region,croptype+".csv")
                 
             else:
@@ -74,4 +81,6 @@ def clean_and_save_data(raw_path=None, clean_path=None):
 
 # ------------------------------
 
-clean_and_save_data()
+#optimized_dataloader.clean_and_save_data() to call in main
+if __name__ == "__main__":
+    clean_and_save_data()
