@@ -79,7 +79,7 @@ def select_file():
         target_folder = os.path.join(region_path, selected_province)
         location_label = f"{selected_province} ({selected_region})"
 
-# ------------------------------ GET CROPTYPE FROM USER -------------------------------#
+# ------ GET CROPTYPE FROM USER 
     crop_list = []
     for f in os.listdir(target_folder):
         if f.endswith(".csv"):
@@ -99,4 +99,42 @@ def select_file():
     selected_period = userChoice("Select Time Period to Model", periods)
 
     return csv_path, location_label, selected_crop, selected_period
+
+# ------------------------------ LOAD DATA -------------------------------#
+def load_data(csv_path, selected_period):
+    X = []
+    Y = []
+
+    quarter_offsets = {
+        "Quarter 1": 0.0,
+        "Quarter 2": 0.25,
+        "Quarter 3": 0.50,
+        "Quarter 4": 0.75
+    }
+
+    with open(csv_path, mode="r", encoding="utf-8") as file:
+        reader = csv.DictReader(file)                             # first row as keys
+        for row in reader:
+            year_str = row["Year"].strip()
+            period_str = row["Period"].strip()
+            prod_str = row["Production_Amount"].strip()
+
+            if prod_str == "":   # skip row without records
+                continue
+
+            year = int(year_str)
+            production = float(prod_str)
+
+            if selected_period == "All Quarters (Continuous Time Series)":
+
+                # if want to see all quarters, gets all the quarters using their offsets
+                if period_str in quarter_offsets:
+                    X.append([year + quarter_offsets[period_str]])
+                    Y.append(production)
+            else:
+                if period_str == selected_period:
+                    X.append([float(year)])
+                    Y.append(production)
+
+    return X, Y
 
