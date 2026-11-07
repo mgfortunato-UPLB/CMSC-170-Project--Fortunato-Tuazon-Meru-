@@ -4,6 +4,8 @@
 
 import os
 import csv
+import numpy as np
+import matplotlib.pyplot as plt
 
 def get_processed_directory():  # go to processed directory
     models_dir = os.path.dirname(os.path.abspath(__file__))
@@ -137,4 +139,39 @@ def load_data(csv_path, selected_period):
                     Y.append(production)
 
     return X, Y
+
+
+
+#--------------------------- LINEAR REG -------------------------------------------#
+
+def linear_regression(X, Y):
+    # compute for best weights
+    # linear regression formula W^= (X^T * X)^-1 X^Ty (From lecture)
+
+    # convert normal lists to numpy arrays
+    X_array = np.array(X, dtype=float)
+    Y_array = np.array(Y, dtype=float)
+
+    X_rownum = X_array.shape[0]
+    # add 1 before each X value to be able to get the intercept
+    # create an np array with values of 1 with (X rows and 1 col)
+    ones = np.ones((X_rownum, 1))
+    # combine horizontally the 1 and the original X values (1, x1) (1,x2)...etc
+    X_b = np.hstack((ones, X_array))
+
+    # linear reg formula
+    X_transposed = X_b.T
+    X_transposed_dot_X = X_transposed.dot(X_b)      # (X^T * X)
+    X_inverse_mat = np.linalg.inv(X_transposed_dot_X)   # (X^T * X)^-1
+
+    inverse_dot_trans = X_inverse_mat.dot(X_transposed) # (X^T * X)^-1 (X^T)
+
+    w_hat = inverse_dot_trans.dot(Y_array) # w^ = (X^T * X)^-1 * (X^T) * Y
+
+    intercept = w_hat[0]
+    slope = w_hat[1]
+
+    return intercept, slope
+
+    
 
