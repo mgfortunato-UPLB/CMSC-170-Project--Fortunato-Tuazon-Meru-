@@ -173,5 +173,124 @@ def linear_regression(X, Y):
 
     return intercept, slope
 
-    
 
+def forecast_and_plot(X, Y, intercept, slope, location, crop, period):
+    # ask the user what to forcast
+    while True:
+        forecast_years = int(input("\nHow many years into the future do you want to forcast? (e.g., 5): "))
+        if forecast_years > 0:
+            break
+        else:
+            print("Please enter a positive integer")
+
+    if period == "All Quarters (Continuous Time Series)":
+        step = 0.25
+        num_points = forecast_years * 4         # 4 quarters per year
+    else:
+        step = 1.0
+        num_points = forecast_years
+
+    # find the latest time point in data
+    last_x = X[0][0]
+    for i in X:
+        current_year = i[0]
+        if current_year > last_x:
+            last_x = current_year
+
+    future_X = []
+    future_Y = []
+
+
+    print(f"\n--- FORECAST RESULTS ({location} - {crop}) ---")
+    for i in range(1, num_points + 1):
+        next_x = last_x + (i*step)
+        pred_y = intercept + (slope * next_x)
+
+        if pred_y < 0:
+            pred_y = 0.0
+
+        future_X.append([next_x])
+        future_Y.append(pred_y)
+
+        if period == "All Quarters (Continuous Time Series)":
+            year_part = int(next_x)
+            quarter_decimal = next_x - year_part
+            q_num = int((quarter_decimal * 4) + 1)
+            print(f"Predicted {year_part} Q{q_num}: {pred_y:,.2f} Metric Tons")
+        else:
+            print(f"Predicted Year {int(next_x)}: {pred_y:,.2f} Metric Tons")
+
+    # Visualization using matplotlib
+    # make 1d array for x and future x
+    x_flat = []
+    for i in X:
+        x_flat.append(i[0])
+
+    last_historical_year = x_flat[-1]
+
+    future_xflat = []
+    for i in future_X:
+        future_xflat.append(i[0])
+
+    # calculate the straight line trend for linear regression
+    hist_trend_Y = []
+    for i in x_flat:
+        predicted_val = intercept + (slope * i)
+        hist_trend_Y.append(predicted_val)
+
+    last_historical_prediction = hist_trend_Y[-1]
+
+    future_xflat.insert(0, last_historical_year)
+    future_Y.insert(0, last_historical_prediction)
+    
+    # create window
+    plt.figure(figsize=(10,6))
+
+    # plot historical data
+    plt.scatter(x_flat, Y, color='blue', label='Historical Data', alpha=0.6)
+
+    # plot the linear line
+    plt.plot(x_flat, hist_trend_Y, color='black', linestyle='--', label='Historical Trend')
+
+    #plot future forecast
+    plt.scatter(future_xflat, future_Y, color='red', label='Future Forecast')
+    plt.plot(future_xflat, future_Y, color='red', linestyle='-')
+
+    # labels
+    plt.title(f"{crop} Production Forecast for {location} ({period})")
+    plt.xlabel("Time (Years)")
+    plt.ylabel("Production Amount (Metric Tons)")
+
+    # removes scientific notation for y axis
+    plt.ticklabel_format(style='plain', axis='y')
+
+    # formatting
+    plt.grid(True, linestyle=':', alpha=0.7)
+    plt.legend()
+    plt.tight_layout()
+
+    # from https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.format_coord.html
+    ax = plt.gca()
+    ax.format_coord = lambda x, y: f"x={x:.2f}, y={y:,.2f}"
+    plt.show()
+
+# ------ MAIN -------
+if __name__ == "__main__":
+    try:
+        csv_path, location, crop, period, = select_file()
+
+        if os.path.exists(csv_path):
+            X, Y = load_data(csv_path, period)
+
+            if len(X) < 2:
+                print("Error, not enough data points to calculate linear regression")
+            else:
+                intercept, slope = linear_regression(X, Y)
+                print(f"\nModel Trained! Slope: {slope:.2f}, Intercept: {intercept:.2f}")
+
+                forecast_and_plot(X, Y, intercept, slope, location, crop, period)
+        else:
+            print(f"Status: FAILED. The file {csv_path} does not exist.")
+    except Exception as e:
+        print(f"\nAn error occured: {e}")
+    
