@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 
 class Binary_Tree_Node:
-    def __init__(self, array_of_data):
+    def __init__(self, array_of_data, left_bound, right_bound):
         self.left_child = None
         self.right_child = None
         self.expected_val = None
@@ -33,27 +33,32 @@ class Binary_Tree_Node:
                 if (self.bound == None) or self.bound[1] >= ssr:
                     self.bound = (i,ssr)
 
-            self.left_child = Binary_Tree_Node(array_of_data[:self.bound[0]])
-            self.right_child = Binary_Tree_Node(array_of_data[self.bound[0]:])
+            self.left_child = Binary_Tree_Node(array_of_data[:self.bound[0]], left_bound, left_bound + self.bound[0])
+            self.right_child = Binary_Tree_Node(array_of_data[self.bound[0]:], left_bound + self.bound[0], right_bound)
 
         else:
             self.expected_val = sum(array_of_data) / len(array_of_data)
-        
-
+            plt.plot([((1987*4) + left_bound)/4, ((1987*4) + right_bound)/4], [self.expected_val, self.expected_val], "b-")
 
 def reg_tree(path, time):
     with open(path, mode="r", encoding="utf-8") as file:
         reader = csv.reader(file)
         next(reader) # skip header
 
+        x_values = []
         y_values = []
 
+        i = 1
         for row in reader:
             if row[1].startswith("Quarter"):
+                x_values.append(1987 + ((i/4)))
                 y_values.append(float(row[2]))
-                plt.plot(float(row[0]),float(row[2]))
+                i+=1
+        print(x_values)
+        print(y_values)
+        plt.plot(x_values, y_values, "r.")
 
-        regression_tree = Binary_Tree_Node(y_values)
+        regression_tree = Binary_Tree_Node(y_values, 0, len(x_values) - 1)
 
         while regression_tree.expected_val == None:
             if time < y_values[regression_tree.bound[0]]:
@@ -61,14 +66,9 @@ def reg_tree(path, time):
             else:
                 regression_tree = regression_tree.right_child
 
+    plt.show()
     return regression_tree.expected_val
-
-        # for i in range(len(y_values) - 1):
-        #     threshold = i+1
-        #     average_left = 0
-        #     average_right = 0
-        #     for i in range(len(y_values) - 1):
 
 time = 1989.3475394579
 
-print(reg_tree("processed/Philippines/Corn.csv", (1989.3475394579 - 1987) * 4))
+print(reg_tree("../../data/processed/Philippines/Corn.csv", (1989.3475394579 - 1987) * 4))
