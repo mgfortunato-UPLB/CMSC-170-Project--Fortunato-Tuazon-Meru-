@@ -96,7 +96,6 @@ def select_file():
         "Annual",
         "Quarter 1", "Quarter 2", "Quarter 3", "Quarter 4",
         "Semester 1", "Semester 2",
-        "All Quarters (Continuous Time Series)"
     ]
     selected_period = userChoice("Select Time Period to Model", periods)
 
@@ -127,16 +126,9 @@ def load_data(csv_path, selected_period):
             year = int(year_str)
             production = float(prod_str)
 
-            if selected_period == "All Quarters (Continuous Time Series)":
-
-                # if want to see all quarters, gets all the quarters using their offsets
-                if period_str in quarter_offsets:
-                    X.append([year + quarter_offsets[period_str]])
-                    Y.append(production)
-            else:
-                if period_str == selected_period:
-                    X.append([float(year)])
-                    Y.append(production)
+            if period_str == selected_period:
+                X.append([float(year)])
+                Y.append(production)
 
     return X, Y
 
@@ -183,12 +175,8 @@ def forecast_and_plot(X, Y, intercept, slope, location, crop, period):
         else:
             print("Please enter a positive integer")
 
-    if period == "All Quarters (Continuous Time Series)":
-        step = 0.25
-        num_points = forecast_years * 4         # 4 quarters per year
-    else:
-        step = 1.0
-        num_points = forecast_years
+    step = 1.0
+    num_points = forecast_years
 
     # find the latest time point in data
     last_x = X[0][0]
@@ -212,13 +200,7 @@ def forecast_and_plot(X, Y, intercept, slope, location, crop, period):
         future_X.append([next_x])
         future_Y.append(pred_y)
 
-        if period == "All Quarters (Continuous Time Series)":
-            year_part = int(next_x)
-            quarter_decimal = next_x - year_part
-            q_num = int((quarter_decimal * 4) + 1)
-            print(f"Predicted {year_part} Q{q_num}: {pred_y:,.2f} Metric Tons")
-        else:
-            print(f"Predicted Year {int(next_x)}: {pred_y:,.2f} Metric Tons")
+        print(f"Predicted Year {int(next_x)}: {pred_y:,.2f} Metric Tons")
 
     # Visualization using matplotlib
     # make 1d array for x and future x
@@ -277,6 +259,7 @@ def forecast_and_plot(X, Y, intercept, slope, location, crop, period):
 # ------ MAIN -------
 if __name__ == "__main__":
     try:
+        # find file 
         csv_path, location, crop, period, = select_file()
 
         if os.path.exists(csv_path):
