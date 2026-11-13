@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 import csv
 
@@ -8,6 +9,9 @@ import csv
 # svr.py lives in src/models/, so the project root is 3 folders up from this file
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PROCESSED_DIR = os.path.join(PROJECT_ROOT, "data", "processed")
+
+# where the graph will be saved
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
 
 # Palay and Corn are totals of these four, so using them too would count the same crops twice
 CROPS = ["Irrigated Palay", "Rainfed Palay", "White Corn", "Yellow Corn"]
@@ -205,7 +209,29 @@ def run_province_svr(last_train_year=2018, epsilon=0.05, lam=1e-4, lr=0.01, epoc
 
 
 if __name__ == "__main__":
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+
     for name, fn in [("National", run_national_svr), ("Region", run_region_svr), ("Province", run_province_svr)]:
         r = fn()
         print(f"{name:9s} train={r['n_train']:6d} test={r['n_test']:5d} | "
               f"SVR   MAE={r['mae']:>9,.0f} RMSE={r['rmse']:>9,.0f} R2={r['r2']:.4f} | ")
+
+        # actual vs predicted (points near the red line = good predictions)
+        plt.figure(figsize=(6, 6))
+        plt.scatter(r['actual'], r['predicted'], s=10)
+        top = max(r['actual'].max(), r['predicted'].max())
+        plt.plot([0, top], [0, top], "r--", label="perfect prediction")
+        plt.xlabel("Actual production (tons)")
+        plt.ylabel("Predicted production (tons)")
+        plt.title(name + " SVR: actual vs predicted")
+        plt.legend()
+        plt.savefig(os.path.join(RESULTS_DIR, name + "_actual_vs_predicted.png"))
+        plt.close()
+
+        # training loss (should go down and flatten out)
+        plt.plot(r['model']['loss_history'])
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title(name + " SVR: training loss")
+        plt.savefig(os.path.join(RESULTS_DIR, name + "_loss.png"))
+        plt.close()
