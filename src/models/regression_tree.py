@@ -1,9 +1,12 @@
 import csv
 import os
 import matplotlib.pyplot as plt
+from eval_metrics import mean_absolute_error
 
 class Binary_Tree_Node:
     def __init__(self, array_of_data, left_bound, right_bound):
+        self.left_bound = left_bound
+        self.right_bound = right_bound
         self.left_child = None
         self.right_child = None
         self.expected_val = None
@@ -54,21 +57,31 @@ def reg_tree(path, time):
                 x_values.append(1987 + ((i/4)))
                 y_values.append(float(row[2]))
                 i+=1
-        print(x_values)
-        print(y_values)
         plt.plot(x_values, y_values, "r.")
 
         regression_tree = Binary_Tree_Node(y_values, 0, len(x_values) - 1)
 
+        pred_values = []
+        for y in y_values:
+            temp_regression_tree = regression_tree
+            while temp_regression_tree.expected_val == None:
+                if y < y_values[temp_regression_tree.bound[0]]:
+                    temp_regression_tree = temp_regression_tree.left_child
+                else:
+                    temp_regression_tree = temp_regression_tree.right_child
+            pred_values.append(temp_regression_tree.expected_val)
+
         while regression_tree.expected_val == None:
-            if time < y_values[regression_tree.bound[0]]:
+            print(x_values[regression_tree.left_bound + regression_tree.bound[0]])
+            if time < x_values[regression_tree.left_bound + regression_tree.bound[0]]:
                 regression_tree = regression_tree.left_child
             else:
                 regression_tree = regression_tree.right_child
 
     plt.show()
-    return regression_tree.expected_val
+    return (regression_tree.expected_val, mean_absolute_error(y_values, pred_values))
 
-time = 1989.3475394579
+time = 2010.3475394579
+answer = reg_tree("processed/Philippines/Corn.csv", time)
 
-print(reg_tree("../../data/processed/Philippines/Corn.csv", (1989.3475394579 - 1987) * 4))
+print("The expected value of the crop's yield at year " + str(time) + " is " + str(answer[0]) + " with mean error " + str(answer[1]))
