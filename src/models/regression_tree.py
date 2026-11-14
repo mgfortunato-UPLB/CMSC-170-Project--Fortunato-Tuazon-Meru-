@@ -6,42 +6,43 @@ from eval_metrics import mean_absolute_error
 class Binary_Tree_Node:
     def __init__(self, array_of_data, left_bound, right_bound):
         self.left_bound = left_bound
-        self.right_bound = right_bound
+        # self.right_bound = right_bound
         self.left_child = None
         self.right_child = None
         self.expected_val = None
         self.bound = None
 
-        if len(array_of_data) > 12:
-            for i in range(len(array_of_data)):
-                if i == 0:
-                    continue
+        for i in range(len(array_of_data)):
+            if i == 0:
+                continue
 
-                left_child = array_of_data[:i]
-                right_child = array_of_data[i:]
+            left_child = array_of_data[:i]
+            right_child = array_of_data[i:]
 
-                average_left = sum(left_child) / len(left_child)
-                average_right = sum(right_child) / len(right_child)
+            average_left = sum(left_child) / len(left_child)
+            average_right = sum(right_child) / len(right_child)
 
-                left_squares = []
-                right_squares = []
+            left_squares = []
+            right_squares = []
 
-                for j in left_child:
-                    left_squares.append((j-average_left)**2)
-                for j in right_child:
-                    right_squares.append((j-average_right)**2)
+            for j in left_child:
+                left_squares.append((j-average_left)**2)
+            for j in right_child:
+                right_squares.append((j-average_right)**2)
 
-                ssr = sum(left_squares) + sum(right_squares)
+            ssr = sum(left_squares) + sum(right_squares)
 
-                if (self.bound == None) or self.bound[1] >= ssr:
+            if (self.bound == None) or self.bound[1] >= ssr:
+                if len(array_of_data[:i]) >= 6 and len(array_of_data[i:]) >= 6:
                     self.bound = (i,ssr)
 
-            self.left_child = Binary_Tree_Node(array_of_data[:self.bound[0]], left_bound, left_bound + self.bound[0])
-            self.right_child = Binary_Tree_Node(array_of_data[self.bound[0]:], left_bound + self.bound[0], right_bound)
-
-        else:
+        if self.bound == None:
+            # print(str(((1987*4) + right_bound)/4 - ((1987*4) + left_bound)/4))
             self.expected_val = sum(array_of_data) / len(array_of_data)
             plt.plot([((1987*4) + left_bound)/4, ((1987*4) + right_bound)/4], [self.expected_val, self.expected_val], "b-")
+        else:
+            self.left_child = Binary_Tree_Node(array_of_data[:self.bound[0]], left_bound, left_bound + self.bound[0])
+            self.right_child = Binary_Tree_Node(array_of_data[self.bound[0]:], left_bound + self.bound[0], right_bound)
 
 def reg_tree(path, time):
     with open(path, mode="r", encoding="utf-8") as file:
@@ -72,7 +73,7 @@ def reg_tree(path, time):
             pred_values.append(temp_regression_tree.expected_val)
 
         while regression_tree.expected_val == None:
-            print(x_values[regression_tree.left_bound + regression_tree.bound[0]])
+            # print(x_values[regression_tree.left_bound + regression_tree.bound[0]])
             if time < x_values[regression_tree.left_bound + regression_tree.bound[0]]:
                 regression_tree = regression_tree.left_child
             else:
