@@ -66,7 +66,7 @@ def reg_tree(path, time):
         for x in x_values:
             temp_regression_tree = regression_tree
             while temp_regression_tree.expected_val == None:
-                if x < x_values[temp_regression_tree.bound[0]]:
+                if x < x_values[temp_regression_tree.left_bound + temp_regression_tree.bound[0]]:
                     temp_regression_tree = temp_regression_tree.left_child
                 else:
                     temp_regression_tree = temp_regression_tree.right_child
