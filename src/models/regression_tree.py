@@ -63,10 +63,10 @@ def reg_tree(path, time):
         regression_tree = Binary_Tree_Node(y_values, 0, len(x_values) - 1)
 
         pred_values = []
-        for y in y_values:
+        for x in x_values:
             temp_regression_tree = regression_tree
             while temp_regression_tree.expected_val == None:
-                if y < y_values[temp_regression_tree.bound[0]]:
+                if x < x_values[temp_regression_tree.bound[0]]:
                     temp_regression_tree = temp_regression_tree.left_child
                 else:
                     temp_regression_tree = temp_regression_tree.right_child
