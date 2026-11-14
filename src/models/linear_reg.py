@@ -3,9 +3,20 @@
 # - Matplotlib, for plots and figures
 
 import os
+import sys
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
+
+models_dir = os.path.dirname(os.path.abspath(__file__))
+# gets the src directory
+src_dir = os.path.dirname(models_dir)
+# add to sys.path (sys.path only looks at current directory for importing, so we need to add the src/ directory)
+if src_dir not in sys.path:
+    sys.path.append(src_dir)
+
+# import MAE
+from eval_metrics import mean_absolute_error
 
 def get_processed_directory():  # go to processed directory
     models_dir = os.path.dirname(os.path.abspath(__file__))
@@ -256,6 +267,53 @@ def forecast_and_plot(X, Y, intercept, slope, location, crop, period):
     ax.format_coord = lambda x, y: f"x={x:.2f}, y={y:,.2f}"
     plt.show()
 
+
+
+# ------------------- EVALUATION ------------------#
+def evaluate_model(X, Y, full_intercept, full_slope, location, crop, period):
+
+    if period == "Annual":
+        time_unit = "Year"
+    else:
+        time_unit = "Period"
+
+    y_pred_full = []
+    for x_val in X:
+        # linear regression formula for each X value
+        predicted = full_intercept + (full_slope * x_val[0])
+        y_pred_full.append(max(0.0, predicted))
+
+    # calculate MAE for the whole dataset
+    full_mae = mean_absolute_error(Y, y_pred_full)
+
+    print(f"\n--- EVALUATION METRICS (LINEAR REGRESSION): {location} - {crop} - ({period}) ---")
+    print(f"Full Dataset MAE (In-Sample): \n\tThe model is off by {full_mae:,.2f} Metric Tons of {crop} per {time_unit} in {location} (n={len(Y)})")
+
+    # 70/30 training-testing split from 170 lecture
+    split_index = int(len(X) * 0.7)
+
+    # train = 0 to split
+    # test = split to end
+    X_train, X_test = X[:split_index], X[split_index:]
+    Y_train, Y_test = Y[:split_index], Y[split_index:]
+
+    # get the intercept and slope for training data
+    train_intercept, train_slope = linear_regression(X_train, Y_train)
+
+    # same algorithm as earlier for full MAE
+    y_pred_test = []
+    for x_val in X_test:
+        predicted = train_intercept + (train_slope * x_val[0])
+        y_pred_test.append(max(0.0, predicted))
+
+    test_mae = mean_absolute_error(Y_test, y_pred_test)
+    test_start_year = int(X_test[0][0])
+    test_end_year = int(X_test[-1][0])
+
+    print(f"Test Split MAE ({test_start_year} - {test_end_year}), 30% unseen data: \n\tThe model is off by {test_mae:,.2f}  Metric Tons of {crop} per {time_unit} in {location} (n = {len(Y_test)}) (70% train / 30% test)")
+
+
+
 # ------ MAIN -------
 if __name__ == "__main__":
     try:
@@ -271,6 +329,14 @@ if __name__ == "__main__":
                 intercept, slope = linear_regression(X, Y)
                 print(f"\nModel Trained! Slope: {slope:.2f}, Intercept: {intercept:.2f}")
 
+                eval_choice = userChoice(
+                    "Do you want to compute the Evaluation Metric (MAE) for this model? ",
+                    ["Yes, show MAE score", "No, proceed directly to forecasting"]
+                )
+
+                if eval_choice == "Yes, show MAE score":
+                    evaluate_model(X, Y, intercept, slope, location, crop, period)
+                
                 forecast_and_plot(X, Y, intercept, slope, location, crop, period)
         else:
             print(f"Status: FAILED. The file {csv_path} does not exist.")
