@@ -1,4 +1,4 @@
 # CMSC-170-Project--Fortunato-Tuazon-Meru-
 
-for svr need 
-sudo apt install python3-numpy
+for numpy and matplotlib: 
+sudo apt install python3-numpy python3-matplotlib
