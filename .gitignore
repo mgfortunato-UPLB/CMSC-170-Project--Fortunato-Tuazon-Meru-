@@ -1,1 +1,5 @@
 data/processed/
+__pycache__/
+*.pyc
+.vscode/
+results/
