@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forecasting Philippine Palay and Corn Production Volume</title>
+  <!-- MathJax for rendering formulas -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #1d4ed8;
+      --border: #e5e7eb;
+      --card: #f9fafb;
+      --code-bg: #111827;
+      --code-text: #f3f4f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    header {
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    h1 {
+      font-size: 2rem;
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+    }
+    .authors {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--text);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.5rem 1.1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .btn:hover { background: var(--accent); }
+    h2 {
+      font-size: 1.45rem;
+      margin-top: 2.5rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.35rem;
+    }
+    h3 {
+      font-size: 1.15rem;
+      margin-top: 1.75rem;
+      color: var(--accent);
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    code { font-family: "Fira Code", Consolas, monospace; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+    }
+    th { background: var(--card); font-weight: 600; }
+    .plot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1rem 0 2rem;
+    }
+    .plot-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      background: var(--card);
+      text-align: center;
+    }
+    .plot-card img, .full-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .caption {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+    @media (max-width: 768px) {
+      .plot-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Forecasting Philippine Palay and Corn Production Volume using Regression and other Machine Learning Models</h1>
+      <div class="authors">
+        <strong>Group Name: ForTunate Me</strong><br />
+        Mario Angelo G. Fortunato &bull; Lorenz Wingie Meru &bull; Jan Edrian Tuazon
+      </div>
+      <a class="btn" href="https://github.com/mgfortunato-UPLB/CMSC-170-Project--Fortunato-Tuazon-Meru-" target="_blank">
+        View GitHub Repository
+      </a>
+    </header>
+
+    <!-- 1. PROBLEM STATEMENT -->
+    <section id="problem">
+      <h2>1. Problem Statement and Motivation</h2>
+      <p>
+        Palay (rice) is part of every Filipino's diet, while corn supports the regional food supply and livestock feed.
+        Inaccurate yield forecasts hit local farmers the hardest through unstable prices and poor planning, while making
+        it harder to secure food supplies and set import quotas.
+      </p>
+      <p>
+        Given a location (National, Regional, or Provincial), crop type, and reporting period (Annual, Semestral, or
+        Quarterly), we aim to predict production volume in metric tons while minimizing the <strong>Mean Absolute Error (MAE)</strong>.
+      </p>
+    </section>
+
+    <!-- 2. DATASET DESCRIPTION -->
+    <section id="dataset">
+      <h2>2. Dataset Description</h2>
+      <p>
+        <strong>Source:</strong>
+        <a href="https://openstat.psa.gov.ph/" target="_blank">Philippine Statistics Authority (PSA) OpenStat</a> —
+        <em>Palay and Corn: Volume of Production in Metric Tons by Ecosystem/Croptype, Quarter, Semester, Region and Province, 1987–2026</em>.
+      </p>
+      <img class="full-img" src="assets/psa_dataset.png" alt="PSA OpenStat Database Preview" />
+      <ul>
+        <li><strong>Scope:</strong> 40 years of agricultural output (1987–2026) across 7 reporting periods (Quarter 1–4, Semester 1–2, Annual) and 6 crop categories (Palay, Irrigated Palay, Rainfed Palay, Corn, White Corn, Yellow Corn).</li>
+        <li><strong>Target Variable (\(y\)):</strong> Production volume in <strong>metric tons</strong>.</li>
+        <li><strong>Base Features (\(X\)):</strong> <code>Geolocation</code> (National, Region, Province), <code>Croptype</code>, <code>Year</code> (1987–2026), and <code>Period</code>.</li>
+        <li><strong>Preprocessing:</strong> Removed missing/unavailable records (<code>..</code>), converted yield strings to floating-point values, ordered time series chronologically, and applied one-hot encoding plus log-scale standardization (training split only) for SVR.</li>
+      </ul>
+    </section>
+
+    <!-- 3. METHODS -->
+    <section id="methods">
+      <h2>3. Methods</h2>
+
+      <h3>3.1 Linear Regression</h3>
+      <p>
+        Linear Regression draws a single straight trend line through past crop yields over time using the closed-form
+        Normal Equation \(\hat{w} = (X^T X)^{-1} X^T y\) implemented from scratch with NumPy matrix operations. A column of
+        <code>1</code>s is prepended to \(X\) so the model solves for both the baseline intercept and annual slope simultaneously.
+      </p>
+      <pre><code>def linear_regression(X, Y):
+    X_array = np.array(X, dtype=float)
+    Y_array = np.array(Y, dtype=float)
+    X_rownum = X_array.shape[0]
+
+    # Prepend column of 1s to compute the intercept
+    ones = np.ones((X_rownum, 1))
+    X_b = np.hstack((ones, X_array))
+
+    # Normal Equation: w_hat = (X^T * X)^-1 * X^T * Y
+    X_transposed = X_b.T
+    X_transposed_dot_X = X_transposed.dot(X_b)
+    X_inverse_mat = np.linalg.inv(X_transposed_dot_X)
+    inverse_dot_trans = X_inverse_mat.dot(X_transposed)
+    w_hat = inverse_dot_trans.dot(Y_array)
+
+    return w_hat[0], w_hat[1]  # intercept, slope</code></pre>
+
+      <h3>3.2 Support Vector Regression (SVR)</h3>
+      <p>
+        SVR fits a linear model \(\hat{y} = w \cdot x + b\) inside an \(\epsilon\)-insensitive tube (\(\epsilon = 0.05\)),
+        penalizing only predictions outside the tube alongside L2 weight regularization (\(\lambda = 10^{-4}\)):
+        $$J(w, b) = \frac{\lambda}{2}\|w\|^2 + \frac{1}{n}\sum_{i=1}^{n} \max(0, |y_i - \hat{y}_i| - \epsilon)$$
+      </p>
+      <pre><code>def train_linear_svr(X, y, epsilon=0.05, lam=1e-4, lr=0.01, epochs=1000):
+    n_samples, n_features = X.shape
+    w = np.zeros(n_features)
+    b = 0.0
+    loss_history = []
+
+    for t in range(epochs):
+        predictions = np.matmul(X, w) + b
+        errors = y - predictions
+        outside_mask = np.abs(errors) > epsilon
+        error_signs = np.sign(errors) * outside_mask
+
+        grad_w = (lam * w) - (np.matmul(X.T, error_signs) / n_samples)
+        grad_b = -np.mean(error_signs)
+
+        w -= lr * grad_w
+        b -= lr * grad_b
+
+        margin_loss = np.maximum(0, np.abs(errors) - epsilon).mean()
+        reg_loss = 0.5 * lam * np.sum(w ** 2)
+        loss_history.append(reg_loss + margin_loss)
+
+    return {'weights': w, 'bias': b, 'loss_history': loss_history}</code></pre>
+
+      <h3>3.3 Regression Tree</h3>
+      <p>
+        Our Regression Tree recursively partitions the chronological timeline by evaluating every candidate split index
+        and selecting the split that minimizes the combined <strong>Sum of Squared Residuals (SSR)</strong> of the left and right partitions,
+        stopping once a branch reaches the minimum leaf sample threshold (6 samples) and predicting the segment mean.
+      </p>
+      <img class="full-img" src="assets/regtree_diagram.png" alt="Regression Tree Structure" />
+    </section>
+
+    <!-- 4. EXPERIMENTAL SETUP -->
+    <section id="setup">
+      <h2>4. Experimental Setup</h2>
+      <ul>
+        <li><strong>Chronological 70/30 Split:</strong> Models are trained on the first 70% of historical years (1987–2014) and evaluated on the unseen 30% (2015–2026) to prevent future data leakage.</li>
+        <li><strong>Evaluation Metric:</strong> Mean Absolute Error (\(\text{MAE} = \frac{1}{n}\sum |y_{\text{true}} - y_{\text{pred}}|\)), measuring average forecast error directly in metric tons.</li>
+        <li><strong>Hyperparameters:</strong> Linear Regression (closed-form, non-negative output clamp); Linear SVR (\(\epsilon = 0.05\), \(\lambda = 10^{-4}\), \(\text{lr} = 0.01\), \(1000\) epochs); Regression Tree (SSR split criterion, minimum leaf size = 6).</li>
+      </ul>
+    </section>
+
+    <!-- 5. RESULTS -->
+    <section id="results">
+      <h2>5. Results</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Benchmark Slice (70% Train / 30% Test)</th>
+            <th>Linear Regression (MAE)</th>
+            <th>Support Vector Regression (MAE)</th>
+            <th>Regression Tree (MAE)</th>
+            <th>Lowest Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>National — Corn — Annual (Train)</td>
+            <td>587,075.38</td>
+            <td>561,172.93</td>
+            <td><strong>419,312.39</strong></td>
+            <td>Regression Tree</td>
+          </tr>
+          <tr>
+            <td>National — Corn — Annual (Test)</td>
+            <td>439,963.82</td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>—</em></td>
+          </tr>
+          <tr>
+            <td>National — Palay — Annual (Train)</td>
+            <td><strong>570,643.39</strong></td>
+            <td>2,244,841.73</td>
+            <td>986,328.30</td>
+            <td>Linear Regression</td>
+          </tr>
+          <tr>
+            <td>National — Palay — Annual (Test)</td>
+            <td>1,210,727.92</td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>—</em></td>
+          </tr>
+          <tr>
+            <td>Regional — Region IV-A — Palay (Train)</td>
+            <td><strong>23,640.17</strong></td>
+            <td>183,166.25</td>
+            <td>25,871.23</td>
+            <td>Linear Regression</td>
+          </tr>
+          <tr>
+            <td>Regional — Region IV-A — Palay (Test)</td>
+            <td>30,147.39</td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>—</em></td>
+          </tr>
+          <tr>
+            <td>Provincial — Laguna — Irrigated Palay (Train)</td>
+            <td>10,381.39</td>
+            <td>82,804.59</td>
+            <td><strong>9,687.20</strong></td>
+            <td>Regression Tree</td>
+          </tr>
+          <tr>
+            <td>Provincial — Laguna — Irrigated Palay (Test)</td>
+            <td>14,724.62</td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>[Insert Test MAE]</em></td>
+            <td><em>—</em></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Visual Comparison: Regional (Region IV-A Palay)</h3>
+      <div class="plot-grid">
+        <div class="plot-card">
+          <img src="assets/lr_reg4a.png" alt="Linear Regression Region IV-A" />
+          <div class="caption">Linear Regression</div>
+        </div>
+        <div class="plot-card">
+          <img src="assets/svr_reg4a.png" alt="SVR Region IV-A" />
+          <div class="caption">Support Vector Regression</div>
+        </div>
+        <div class="plot-card">
+          <img src="assets/rt_reg4a.png" alt="Regression Tree Region IV-A" />
+          <div class="caption">Regression Tree</div>
+        </div>
+      </div>
+
+      <h3>Visual Comparison: Provincial (Laguna Irrigated Palay)</h3>
+      <div class="plot-grid">
+        <div class="plot-card">
+          <img src="assets/lr_laguna.png" alt="Linear Regression Laguna" />
+          <div class="caption">Linear Regression</div>
+        </div>
+        <div class="plot-card">
+          <img src="assets/svr_laguna.png" alt="SVR Laguna" />
+          <div class="caption">Support Vector Regression</div>
+        </div>
+        <div class="plot-card">
+          <img src="assets/rt_laguna.png" alt="Regression Tree Laguna" />
+          <div class="caption">Regression Tree</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. DISCUSSION & CONCLUSION -->
+    <section id="discussion">
+      <h2>6. Discussion and Conclusion</h2>
+      <p>
+        <strong>Discussion:</strong> Across the evaluated series, the <strong>Regression Tree</strong> and <strong>Linear Regression</strong>
+        consistently achieved lower errors than single-series Linear SVR. Agricultural output rarely grows at a perfectly constant rate
+        over 40 years; Regression Trees adapt to structural shifts by partitioning the timeline into localized mean segments, whereas
+        Linear Regression captures the macro multi-decade trajectory cleanly. Meanwhile, SVR's log-scale transformation and gradient updates
+        experienced larger variance when trained on small single-crop annual slices.
+      </p>
+      <p>
+        <strong>Conclusion:</strong> Building three regression models from scratch on 1987–2026 PSA agricultural records demonstrates that
+        matching model assumptions to data granularity is critical—Linear Regression provides a reliable baseline for long-term directional
+        forecasting, while Regression Trees effectively model non-linear historical shifts.
+      </p>
+    </section>
+
+    <!-- 7. REFERENCES -->
+    <section id="references">
+      <h2>7. References</h2>
+      <ul>
+        <li>Philippine Statistics Authority (PSA) OpenStat: <a href="https://openstat.psa.gov.ph/" target="_blank">openstat.psa.gov.ph</a></li>
+        <li>Design Matrix &amp; Normal Equation: <a href="https://en.wikipedia.org/wiki/Design_matrix" target="_blank">Wikipedia — Design Matrix</a></li>
+        <li>Regression &amp; Decision Trees: <a href="https://scientistcafe.com/ids/regression-and-decision-tree-basic" target="_blank">Scientist Cafe — Regression and Decision Tree Basic</a></li>
+        <li>NumPy Documentation (<code>shape</code> &amp; <code>ones</code>): <a href="https://numpy.org/doc/stable/" target="_blank">numpy.org/doc/stable</a></li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>
