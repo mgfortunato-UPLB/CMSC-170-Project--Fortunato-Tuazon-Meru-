@@ -300,6 +300,17 @@ def evaluate_model(X, Y, full_intercept, full_slope, location, crop, period):
     # get the intercept and slope for training data
     train_intercept, train_slope = linear_regression(X_train, Y_train)
 
+    y_pred_train = []
+    for x_val in X_train:
+        predicted = train_intercept + (train_slope * x_val[0])
+        if predicted < 0.0:
+            predicted = 0.0
+        y_pred_train.append(predicted)
+
+    train_mae = mean_absolute_error(Y_train, y_pred_train)
+    train_start_year = int(X_train[0][0])
+    train_end_year = int(X_train[-1][0])
+
     # same algorithm as earlier for full MAE
     y_pred_test = []
     for x_val in X_test:
@@ -310,7 +321,8 @@ def evaluate_model(X, Y, full_intercept, full_slope, location, crop, period):
     test_start_year = int(X_test[0][0])
     test_end_year = int(X_test[-1][0])
 
-    print(f"Test Split MAE ({test_start_year} - {test_end_year}), 30% unseen data: \n\tThe model is off by {test_mae:,.2f}  Metric Tons of {crop} per {time_unit} in {location} (n = {len(Y_test)}) (70% train / 30% test)")
+    print(f"Train Split MAE ({train_start_year} - {train_end_year}), 70% training data: \n\tThe model is off by {train_mae:,.2f}  Metric Tons of {crop} per {time_unit} in {location} (n = {len(Y_train)})")
+    print(f"Test Split MAE ({test_start_year} - {test_end_year}), 30% unseen data: \n\tThe model is off by {test_mae:,.2f}  Metric Tons of {crop} per {time_unit} in {location} (n = {len(Y_test)})")
 
 
 
