@@ -160,7 +160,7 @@
         <li><strong>Scope:</strong> 40 years of agricultural output (1987–2026) across 7 reporting periods (Quarter 1–4, Semester 1–2, Annual) and 6 crop categories (Palay, Irrigated Palay, Rainfed Palay, Corn, White Corn, Yellow Corn).</li>
         <li><strong>Target Variable (\(y\)):</strong> Production volume in <strong>metric tons</strong>.</li>
         <li><strong>Base Features (\(X\)):</strong> <code>Geolocation</code> (National, Region, Province), <code>Croptype</code>, <code>Year</code> (1987–2026), and <code>Period</code>.</li>
-        <li><strong>Preprocessing:</strong> Removed missing/unavailable records (<code>..</code>), converted yield strings to floating-point values, ordered time series chronologically, and applied one-hot encoding plus log-scale standardization (training split only) for SVR.</li>
+        <li><strong>Preprocessing:</strong> [Insert preprocessing logic here] </li>
       </ul>
     </section>
 
@@ -258,57 +258,57 @@
           <tr>
             <td>National — Corn — Annual (Train)</td>
             <td>587,075.38</td>
-            <td>561,172.93</td>
-            <td><strong>419,312.39</strong></td>
+            <td>[Insert Train MAE]</td>
+            <td>[Insert Train MAE]</td>
             <td>Regression Tree</td>
           </tr>
           <tr>
             <td>National — Corn — Annual (Test)</td>
             <td>439,963.82</td>
-            <td><em>[Insert Test MAE]</em></td>
-            <td><em>[Insert Test MAE]</em></td>
+            <td>561,172.93</td>
+            <td>strong>419,312.39</strong></td>
             <td><em>—</em></td>
           </tr>
           <tr>
             <td>National — Palay — Annual (Train)</td>
-            <td><strong>570,643.39</strong></td>
-            <td>2,244,841.73</td>
-            <td>986,328.30</td>
-            <td>Linear Regression</td>
+            <td>570,643.39</td>
+            <td>[Insert Train MAE]</td>
+            <td>[Insert Train MAE]</td>
+            <td>Regression Tree</td>
           </tr>
           <tr>
             <td>National — Palay — Annual (Test)</td>
             <td>1,210,727.92</td>
-            <td><em>[Insert Test MAE]</em></td>
-            <td><em>[Insert Test MAE]</em></td>
+            <td>2,244,841.73</td>
+            <td><strong>986,328.30</strong></td>
             <td><em>—</em></td>
           </tr>
           <tr>
             <td>Regional — Region IV-A — Palay (Train)</td>
-            <td><strong>23,640.17</strong></td>
-            <td>183,166.25</td>
-            <td>25,871.23</td>
-            <td>Linear Regression</td>
+            <td>23,640.17</td>
+            <td>[Insert Train MAE]</td>
+            <td>[Insert Train MAE]</td>
+            <td>Regression Tree</td>
           </tr>
           <tr>
             <td>Regional — Region IV-A — Palay (Test)</td>
             <td>30,147.39</td>
-            <td><em>[Insert Test MAE]</em></td>
-            <td><em>[Insert Test MAE]</em></td>
+            <td>183,166.25</td>
+            <td><strong>25,871.23</strong></td>
             <td><em>—</em></td>
           </tr>
           <tr>
             <td>Provincial — Laguna — Irrigated Palay (Train)</td>
             <td>10,381.39</td>
-            <td>82,804.59</td>
-            <td><strong>9,687.20</strong></td>
+            <td>[Insert Train MAE]</td>
+            <td>[Insert Train MAE]</td>
             <td>Regression Tree</td>
           </tr>
           <tr>
             <td>Provincial — Laguna — Irrigated Palay (Test)</td>
             <td>14,724.62</td>
-            <td><em>[Insert Test MAE]</em></td>
-            <td><em>[Insert Test MAE]</em></td>
+            <td>82,804.59</td>
+            <td><strong>9,687.20</strong></td>
             <td><em>—</em></td>
           </tr>
         </tbody>
@@ -351,16 +351,10 @@
     <section id="discussion">
       <h2>6. Discussion and Conclusion</h2>
       <p>
-        <strong>Discussion:</strong> Across the evaluated series, the <strong>Regression Tree</strong> and <strong>Linear Regression</strong>
-        consistently achieved lower errors than single-series Linear SVR. Agricultural output rarely grows at a perfectly constant rate
-        over 40 years; Regression Trees adapt to structural shifts by partitioning the timeline into localized mean segments, whereas
-        Linear Regression captures the macro multi-decade trajectory cleanly. Meanwhile, SVR's log-scale transformation and gradient updates
-        experienced larger variance when trained on small single-crop annual slices.
+        <strong>Discussion:</strong> 
       </p>
       <p>
-        <strong>Conclusion:</strong> Building three regression models from scratch on 1987–2026 PSA agricultural records demonstrates that
-        matching model assumptions to data granularity is critical—Linear Regression provides a reliable baseline for long-term directional
-        forecasting, while Regression Trees effectively model non-linear historical shifts.
+        <strong>Conclusion:</strong> 
       </p>
     </section>
 
