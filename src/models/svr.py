@@ -347,13 +347,17 @@ def evaluate_svr(res, data, location, place, crop, period):
     shared = sorted(x for x in hist if x in fit)
     full_mae = mean_absolute_error([hist[x] for x in shared], [fit[x] for x in shared])
     test_x = [x for x in shared if x >= test_start]
-
+    train_x = [x for x in shared if x < test_start]
+    
     print(f"\n--- EVALUATION METRICS (SVR): {location} - {crop} - ({period}) ---")
     print(f"Full Dataset MAE (In-Sample): \n\tThe model is off by {full_mae:,.2f} Metric Tons of {crop} per {unit} in {location} (n={len(shared)})")
+    if train_x:
+        train_mae = mean_absolute_error([hist[x] for x in train_x], [fit[x] for x in train_x])
+        print(f"Train Split MAE (70%): {train_mae:,.2f} Metric Tons")
     if test_x:
         test_mae = mean_absolute_error([hist[x] for x in test_x], [fit[x] for x in test_x])
         print(f"Test Split MAE ({int(test_x[0])} - {int(test_x[-1])}), 30% unseen data: \n\tThe model is off by {test_mae:,.2f} Metric Tons of {crop} per {unit} in {location} (n = {len(test_x)}) (70% train / 30% test)")
-
+    
 
 def forecast_and_plot_svr(res, data, location, place, crop, period, forecast_years):
     parts = COMPOSITE_CROPS.get(crop, [crop])
